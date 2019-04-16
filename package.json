@@ -1,0 +1,36 @@
+{
+  "name": "crypto-pro-customize",
+  "version": "1.1.0",
+  "description": "API для взаимодействия с КриптоПро",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "webpack --config webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/onesuch/crypto-pro-customize.git"
+  },
+  "author": "onesuch <onesuch07@gmail.com>",
+  "keywords": [
+    "crypto",
+    "cryptopro",
+    "crypto-pro",
+    "cades",
+    "КриптоПро"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "bowser": "1.5.0"
+  },
+  "devDependencies": {
+    "webpack": "1.13.2"
+  },
+  "bugs": {
+    "url": "https://github.com/onesuch/crypto-pro-customize/issues"
+  },
+  "homepage": "https://github.com/onesuch/crypto-pro-customize#readme",
+  "directories": {
+    "example": "example"
+  }
+}

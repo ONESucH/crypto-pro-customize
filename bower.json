@@ -1,0 +1,24 @@
+{
+  "name": "crypto-pro",
+  "description": "API для взаимодействия с КриптоПро",
+  "main": "dist/crypto-pro.js",
+  "authors": [
+    "onesuch <onesuch07@gmail.com>"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "crypto",
+    "cryptopro",
+    "crypto-pro",
+    "cades",
+    "КриптоПро"
+  ],
+  "homepage": "https://github.com/onesuch/crypto-pro-customize",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
