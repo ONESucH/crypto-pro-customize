@@ -1,4 +1,3 @@
 .idea
-.git
 node_modules/
-*sln
+*.sln

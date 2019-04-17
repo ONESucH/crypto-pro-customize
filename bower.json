@@ -1,15 +1,15 @@
 {
-  "name": "crypto-pro",
+  "name": "crypto-pro-customize",
   "description": "API для взаимодействия с КриптоПро",
   "main": "dist/crypto-pro.js",
   "authors": [
-    "onesuch <onesuch07@gmail.com>"
+    "onesuch <oneusch07@gmail.com>"
   ],
   "license": "MIT",
   "keywords": [
     "crypto",
     "cryptopro",
-    "crypto-pro",
+    "crypto-pro-customize",
     "cades",
     "КриптоПро"
   ],

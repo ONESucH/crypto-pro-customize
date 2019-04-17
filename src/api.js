@@ -1,6 +1,5 @@
-let cryptoCommon = require('./common'),
+var cryptoCommon = require('./common'),
     cryptoConstants = require('./constants'),
-    cadesplugin = require('./vendor/cadesplugin_api'),
     _certListCache;
 
 function Certificate(item) {
@@ -16,11 +15,11 @@ function Certificate(item) {
  * Проверяет, валиден ли сертификат
  * */
 Certificate.prototype.isValid = function isValid() {
-    let cert = this._cert;
+    var cert = this._cert;
 
     return new Promise(function (resolve, reject) {
         eval(cryptoCommon.generateAsyncFn(function isValid() {
-            let result;
+            var result;
 
             try {
                 result = 'yield' + cert.IsValid();
@@ -39,11 +38,11 @@ Certificate.prototype.isValid = function isValid() {
  * Достает указанное свойство у сертификата
  * */
 Certificate.prototype.getProp = function (propName) {
-    let cert = this._cert;
+    var cert = this._cert;
 
     return new Promise(function (resolve, reject) {
         eval(cryptoCommon.generateAsyncFn(function getProp() {
-            let result;
+            var result;
 
             try {
                 result = 'yield' + cert[propName];
@@ -61,11 +60,11 @@ Certificate.prototype.getProp = function (propName) {
  * Экспорт base64 представления сертификата пользователя
  * */
 Certificate.prototype.exportBase64 = function exportBase64() {
-    let cert = this._cert;
+    var cert = this._cert;
 
     return new Promise(function (resolve, reject) {
         eval(cryptoCommon.generateAsyncFn(function exportBase64() {
-            let base64;
+            var base64;
 
             try {
                 base64 = 'yield' + cert.Export(0);
@@ -83,11 +82,11 @@ Certificate.prototype.exportBase64 = function exportBase64() {
  * Возвращает информацию об алгоритме
  * */
 Certificate.prototype.getAlgorithm = function getAlgorithm() {
-    let cert = this._cert;
+    var cert = this._cert;
 
     return new Promise(function (resolve, reject) {
         eval(cryptoCommon.generateAsyncFn(function getAlgorithm() {
-            let result = {},
+            var result = {},
                 algorithm;
 
             try {
@@ -126,11 +125,11 @@ Certificate.prototype.getIssuerInfo = function getIssuerInfo() {
  * @returns {Array} Возвращает массив OID (улучшенного ключа)
  * */
 Certificate.prototype.getExtendedKeyUsage = function getExtendedKeyUsage() {
-    let cert = this._cert;
+    var cert = this._cert;
 
     return new Promise(function (resolve, reject) {
         eval(cryptoCommon.generateAsyncFn(function getExtendedKeyUsage() {
-            let OIDS = [],
+            var OIDS = [],
                 count,
                 item;
 
@@ -171,7 +170,7 @@ Certificate.prototype.hasExtendedKeyUsage = cryptoCommon.hasExtendedKeyUsage;
 function isValidEDSSettings() {
     return new Promise(function (resolve, reject) {
         eval(cryptoCommon.generateAsyncFn(function isValidEDSSettings() {
-            let result;
+            var result;
 
             try {
                 result = 'yield' + cryptoCommon.createObj('CAdESCOM.About');
@@ -190,7 +189,7 @@ function isValidEDSSettings() {
 function getCadesCert(hash) {
     return new Promise(function (resolve, reject) {
         eval(cryptoCommon.generateAsyncFn(function getCadesCert() {
-            let oStore = 'yield' + cryptoCommon.createObj('CAdESCOM.Store'),
+            var oStore = 'yield' + cryptoCommon.createObj('CAdESCOM.Store'),
                 certs,
                 certCnt,
                 cert;
@@ -247,90 +246,15 @@ function getCadesCert(hash) {
     });
 }
 
-function decrypt(hash, data) {
-    return new Promise((resolve, reject) => {
-        cadesplugin.async_spawn(function* (args) {
-        try {
-            let certificateStore = yield cadesplugin.CreateObjectAsync("CAPICOM.Store");
-
-            yield certificateStore.Open(
-                cadesplugin.CAPICOM_CURRENT_USER_STORE,
-                cadesplugin.CAPICOM_MY_STORE,
-                cadesplugin.CAPICOM_STORE_OPEN_MAXIMUM_ALLOWED
-            );
-
-            let certificatesObj = yield certificateStore.Certificates;
-
-            let certificates = yield certificatesObj.Find(
-                cadesplugin.CAPICOM_CERTIFICATE_FIND_SHA1_HASH,
-                hash
-            );
-
-            let certificateSerial = '';
-            let certificateValidDateTo = '';
-            let count = yield certificates.Count;
-
-            for (let i = 1; i <= count; i++) {
-                try {
-                    let certificate = yield certificates.Item(i);
-
-                    certificateSerial = yield certificate.SerialNumber;
-                    certificateValidDateTo = yield certificate.ValidToDate;
-
-                    if (new Date(certificateValidDateTo) < Date.now()) {
-                        continue;
-                    }
-
-                    let envelopedData = yield cadesplugin.CreateObjectAsync('CAdESCOM.CPEnvelopedData');
-
-                    let recipientsObj = yield envelopedData.Recipients;
-                    yield recipientsObj.Clear();
-                    yield recipientsObj.Add(certificate);
-
-                    yield envelopedData.propset_ContentEncoding(cadesplugin.CADESCOM_BASE64_TO_BINARY);
-                    yield envelopedData.Decrypt(data);
-                    let decriptedData = yield envelopedData.Content;
-
-                    yield certificateStore.Close();
-
-                    args[2](decriptedData);
-                    resolve(true);
-                    return;
-                }
-                catch (err) {
-                    console.log(err, {
-                        serialNumber: certificateSerial,
-                        validToDate: certificateValidDateTo
-                    });
-                }
-            }
-
-            let errorMessage = 'Не найден подходящий сертификат';
-
-            console.log(errorMessage, {
-                hash: hash
-            });
-
-            yield certificateStore.Close();
-            reject(errorMessage);
-
-        } catch (err) {
-            console.log(err);
-            reject(err);
-        }
-    }, hash, data, resolve, reject);
-});
-}
-
 /**
  * Разбирает информацию сертификата по тэгам
  * */
 function getCertInfo(tags, propName) {
-    let cert = this._cert;
+    var cert = this._cert;
 
     return new Promise(function (resolve, reject) {
         eval(cryptoCommon.generateAsyncFn(function getCertInfo() {
-            let propInfo;
+            var propInfo;
 
             try {
                 propInfo = 'yield' + cert[propName];
@@ -341,6 +265,81 @@ function getCertInfo(tags, propName) {
 
             resolve(cryptoCommon.parseCertInfo(tags, propInfo));
         }));
+    });
+}
+
+function decrypt(hash, data) {
+    return new Promise((resolve, reject) => {
+        cadesplugin.async_spawn(function* (args) {
+            try {
+                let certificateStore = yield cadesplugin.CreateObjectAsync("CAPICOM.Store");
+
+                yield certificateStore.Open(
+                    cadesplugin.CAPICOM_CURRENT_USER_STORE,
+                    cadesplugin.CAPICOM_MY_STORE,
+                    cadesplugin.CAPICOM_STORE_OPEN_MAXIMUM_ALLOWED
+                );
+
+                let certificatesObj = yield certificateStore.Certificates;
+
+                let certificates = yield certificatesObj.Find(
+                    cadesplugin.CAPICOM_CERTIFICATE_FIND_SHA1_HASH,
+                    hash
+                );
+
+                let certificateSerial = '';
+                let certificateValidDateTo = '';
+                let count = yield certificates.Count;
+
+                for (let i = 1; i <= count; i++) {
+                    try {
+                        let certificate = yield certificates.Item(i);
+
+                        certificateSerial = yield certificate.SerialNumber;
+                        certificateValidDateTo = yield certificate.ValidToDate;
+
+                        if (new Date(certificateValidDateTo) < Date.now()) {
+                            continue;
+                        }
+
+                        let envelopedData = yield cadesplugin.CreateObjectAsync('CAdESCOM.CPEnvelopedData');
+
+                        let recipientsObj = yield envelopedData.Recipients;
+                        yield recipientsObj.Clear();
+                        yield recipientsObj.Add(certificate);
+
+                        yield envelopedData.propset_ContentEncoding(cadesplugin.CADESCOM_BASE64_TO_BINARY);
+                        yield envelopedData.Decrypt(data);
+                        let decriptedData = yield envelopedData.Content;
+
+                        yield certificateStore.Close();
+
+                        args[2](decriptedData);
+                        resolve(true);
+                        return;
+                    }
+                    catch (err) {
+                        console.log(err, {
+                            serialNumber: certificateSerial,
+                            validToDate: certificateValidDateTo
+                        });
+                    }
+                }
+
+                let errorMessage = 'Не найден подходящий сертификат';
+
+                console.log(errorMessage, {
+                    hash: hash
+                });
+
+                yield certificateStore.Close();
+                reject(errorMessage);
+
+            } catch (err) {
+                console.log(err);
+                reject(err);
+            }
+        }, hash, data, resolve, reject);
     });
 }
 
@@ -358,7 +357,7 @@ function getCertsList(resetCache) {
         }
 
         eval(cryptoCommon.generateAsyncFn(function getCertsList() {
-            let oStore = 'yield' + cryptoCommon.createObj('CAdESCOM.Store'),
+            var oStore = 'yield' + cryptoCommon.createObj('CAdESCOM.Store'),
                 result = [],
                 certs,
                 count,
@@ -443,7 +442,7 @@ function getCert(hash) {
         }
 
         getCertsList().then(function (list) {
-            let foundCert;
+            var foundCert;
 
             list.some(function (cert) {
                 if (hash === cert.thumbprint) {
@@ -475,7 +474,7 @@ function signData(hash, dataBase64, signType) {
     return new Promise(function (resolve, reject) {
         getCadesCert(hash).then(function (cert) {
             eval(cryptoCommon.generateAsyncFn(function signData() {
-                let clientTime = new Date(),
+                var clientTime = new Date(),
                     oAttrs = 'yield' + cryptoCommon.createObj('CADESCOM.CPAttribute'),
                     oSignedData = 'yield' + cryptoCommon.createObj('CAdESCOM.CadesSignedData'),
                     oSigner = 'yield' + cryptoCommon.createObj('CAdESCOM.CPSigner'),
@@ -533,7 +532,7 @@ function signDataXML(hash, dataXML) {
     return new Promise(function (resolve, reject) {
         getCadesCert(hash).then(function (cert) {
             eval(cryptoCommon.generateAsyncFn(function signDataXML() {
-                let oSigner = 'yield' + cryptoCommon.createObj('CAdESCOM.CPSigner'),
+                var oSigner = 'yield' + cryptoCommon.createObj('CAdESCOM.CPSigner'),
                     signerXML = 'yield' + cryptoCommon.createObj('CAdESCOM.SignedXML'),
                     cnts = cryptoConstants,
                     signature;
@@ -571,11 +570,11 @@ function signDataXML(hash, dataXML) {
  * Возвращает информацию о версии CSP и плагина
  * */
 function getSystemInfo() {
-    let sysInfo = cryptoCommon.getEnvInfo();
+    var sysInfo = cryptoCommon.getEnvInfo();
 
     return new Promise(function (resolve, reject) {
         eval(cryptoCommon.generateAsyncFn(function getSystemInfo() {
-            let e;
+            var e;
 
             try {
                 e = 'yield' + cryptoCommon.createObj('CAdESCOM.About');

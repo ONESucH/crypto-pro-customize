@@ -1099,6 +1099,81 @@ var CryptoPro =
 	    });
 	}
 	
+	function decrypt(hash, data) {
+	    return new Promise((resolve, reject) => {
+	        cadesplugin.async_spawn(function* (args) {
+	            try {
+	                let certificateStore = yield cadesplugin.CreateObjectAsync("CAPICOM.Store");
+	
+	                yield certificateStore.Open(
+	                    cadesplugin.CAPICOM_CURRENT_USER_STORE,
+	                    cadesplugin.CAPICOM_MY_STORE,
+	                    cadesplugin.CAPICOM_STORE_OPEN_MAXIMUM_ALLOWED
+	                );
+	
+	                let certificatesObj = yield certificateStore.Certificates;
+	
+	                let certificates = yield certificatesObj.Find(
+	                    cadesplugin.CAPICOM_CERTIFICATE_FIND_SHA1_HASH,
+	                    hash
+	                );
+	
+	                let certificateSerial = '';
+	                let certificateValidDateTo = '';
+	                let count = yield certificates.Count;
+	
+	                for (let i = 1; i <= count; i++) {
+	                    try {
+	                        let certificate = yield certificates.Item(i);
+	
+	                        certificateSerial = yield certificate.SerialNumber;
+	                        certificateValidDateTo = yield certificate.ValidToDate;
+	
+	                        if (new Date(certificateValidDateTo) < Date.now()) {
+	                            continue;
+	                        }
+	
+	                        let envelopedData = yield cadesplugin.CreateObjectAsync('CAdESCOM.CPEnvelopedData');
+	
+	                        let recipientsObj = yield envelopedData.Recipients;
+	                        yield recipientsObj.Clear();
+	                        yield recipientsObj.Add(certificate);
+	
+	                        yield envelopedData.propset_ContentEncoding(cadesplugin.CADESCOM_BASE64_TO_BINARY);
+	                        yield envelopedData.Decrypt(data);
+	                        let decriptedData = yield envelopedData.Content;
+	
+	                        yield certificateStore.Close();
+	
+	                        args[2](decriptedData);
+	                        resolve(true);
+	                        return;
+	                    }
+	                    catch (err) {
+	                        console.log(err, {
+	                            serialNumber: certificateSerial,
+	                            validToDate: certificateValidDateTo
+	                        });
+	                    }
+	                }
+	
+	                let errorMessage = 'Не найден подходящий сертификат';
+	
+	                console.log(errorMessage, {
+	                    hash: hash
+	                });
+	
+	                yield certificateStore.Close();
+	                reject(errorMessage);
+	
+	            } catch (err) {
+	                console.log(err);
+	                reject(err);
+	            }
+	        }, hash, data, resolve, reject);
+	    });
+	}
+	
 	/**
 	 * Возвращает список сертификатов, доступных в системе
 	 *
@@ -1376,6 +1451,7 @@ var CryptoPro =
 	    isValidEDSSettings: isValidEDSSettings,
 	    getCertsList: getCertsList,
 	    getCadesCert: getCadesCert,
+	    decrypt: decrypt,
 	    getCert: getCert,
 	    signData: signData,
 	    signDataXML: signDataXML,
