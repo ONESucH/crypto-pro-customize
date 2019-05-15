@@ -1,11 +1,11 @@
+var path = require('path');
+
 module.exports = {
     context: __dirname + '/src',
-    entry: './index.js',
+    entry: './cadesplugin-api.js',
     output: {
-        path: 'dist',
-        filename: 'crypto-pro.js',
-        library: 'CryptoPro'
+        path: path.resolve(__dirname, 'dist'),
+        filename: 'crypto-pro.js'
     },
-    devtool: 'source-map',
-    watch: true
+    devtool: 'source-map'
 };
