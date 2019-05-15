@@ -1,6 +1,6 @@
 {
   "name": "crypto-pro-customize",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Add more skills",
   "main": "src/index.js",
   "directories": {
