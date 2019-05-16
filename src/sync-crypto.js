@@ -29,8 +29,8 @@ function sign(subjectName, data) {
       return "Certificate not found: " + subjectName;
     }
 
-    var certificateSerial = '',
-        certificateValidDateTo = '';
+    var certificateSerial = '';
+    var certificateValidDateTo = '';
 
     for (var i = 1; i <= certificates.Count; i++) {
       try {
@@ -142,12 +142,13 @@ function getCertificate(subjectName) {
     );
 
     var certificates = certificateStore.Certificates.Find(
-        cadesplugin.CAPICOM_CERTIFICATE_FIND_SUBJECT_NAME,
-        subjectName
-        ), 
-        certificateSerial = '', 
-        certificateValidDateTo = '', 
-        count = certificates.Count;
+      cadesplugin.CAPICOM_CERTIFICATE_FIND_SUBJECT_NAME,
+      subjectName
+    );
+
+    var certificateSerial = '';
+    var certificateValidDateTo = '';
+    var count = certificates.Count;
 
     for (var i = 1; i <= count; i++) {
       try {
@@ -191,11 +192,11 @@ function getCertificate(subjectName) {
 }
 
 function getCertificates() {
-  var certList = [],
-      date = new Date(),
-      certificatesCount,
-      certificateStore,
-      cert;
+  var certList = [];
+  var date = new Date();
+  var certificatesCount;
+  var certificateStore;
+  var cert;
 
   try {
     certificateStore = cadesplugin.CreateObject("CAdESCOM.Store");
@@ -260,16 +261,14 @@ function getCertificates() {
 }
 
 function CertificateObj(certObj) {
-  var cert = certObj, 
-      certFromDate = new Date(cert.ValidFromDate), 
-      certTillDate = new Date(cert.ValidToDate);
+  this.cert = certObj;
+  this.certFromDate = new Date(this.cert.ValidFromDate);
+  this.certTillDate = new Date(this.cert.ValidToDate);
 }
-
-console.log('-->>CertificateObj sync-scrypto', CertificateObj);
 
 CertificateObj.prototype.check = function (digit) {
   return (digit < 10) ? "0" + digit : digit;
-};
+}
 
 CertificateObj.prototype.extract = function (from, what) {
   var certName = "";
@@ -281,7 +280,7 @@ CertificateObj.prototype.extract = function (from, what) {
   }
 
   return certName;
-};
+}
 
 CertificateObj.prototype.DateTimePutTogether = function (certDate) {
   return this.check(certDate.getUTCDate()) + "." + this.check(certDate.getMonth() + 1) + "." + certDate.getFullYear() + " " +
@@ -315,3 +314,14 @@ CertificateObj.prototype.GetIssuer = function () {
 CertificateObj.prototype.GetPrivateKeyProviderName = function () {
   return this.cert.PrivateKey.ProviderName;
 }
+
+var SyncCrypro = {
+  GetErrorMessage: GetErrorMessage,
+  sign: sign,
+  decrypt: decrypt,
+  getCertificate: getCertificate,
+  getCertificates: getCertificates,
+  CertificateObj: CertificateObj,
+};
+
+module.exports = SyncCrypro;
