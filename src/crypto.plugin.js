@@ -1,8 +1,8 @@
+require('./cadesplugin-api');
 var _ = require('underscore');
 console.log('window', window);
 console.log('underscore ', _);
 
-//require('./cadesplugin-api');
 var AsyncCrypto = require('./async-crypto');
 console.log('AsyncCrypto', AsyncCrypto);
 
@@ -233,10 +233,9 @@ function GetCertificateName(subjectName) {
  * Получение списка сертифкатов
  */
 function GetCertificate(data) {
-  console.log('GetCertificate', data);
   if (IsChromiumBased()) {
     return new Promise(function(resolve, reject) {
-      return GetCertificates()
+      return AsyncCrypto.GetCertificates()
         .then(function(certList) {
           return resolve(certList);
         })
@@ -247,7 +246,7 @@ function GetCertificate(data) {
   } else {
     return new Promise(function(resolve, reject) {
       setTimeout(function() {
-        var certList = GetCertificates();
+        var certList = AsyncCrypto.GetCertificates();
         if (typeof certList === 'string') {
           return reject(certList);
         } else {

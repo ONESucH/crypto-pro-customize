@@ -504,6 +504,16 @@ function GetCertificates() {
   return new Promise((resolve, reject) => {
     cadesplugin.async_spawn(function*(args) {
       try {
+        var certificateStore = yield cadesplugin.CreateObjectAsync("CAPICOM.Store");
+
+        yield certificateStore.Open(
+          cadesplugin.CAPICOM_CURRENT_USER_STORE,
+          cadesplugin.CAPICOM_MY_STORE,
+          cadesplugin.CAPICOM_STORE_OPEN_MAXIMUM_ALLOWED
+        );
+
+        var certificatesObj = yield certificateStore.Certificates;
+        var certificateCount = yield certificatesObj.Count;
         var certList = {};
 
         if (certificateCount === 0) {
