@@ -403,16 +403,16 @@ function CertificateParser() {
     const date = new Date(paramDate);
 
     returnprint2Digit(date.getUTCDate()) +
-      '.' +
-      print2Digit(date.getMonth() + 1) +
-      '.' +
-      date.getFullYear() +
-      ' ' +
-      print2Digit(date.getUTCHours()) +
-      ':' +
-      print2Digit(date.getUTCMinutes()) +
-      ':' +
-      print2Digit(date.getUTCSeconds());
+    '.' +
+    print2Digit(date.getMonth() + 1) +
+    '.' +
+    date.getFullYear() +
+    ' ' +
+    print2Digit(date.getUTCHours()) +
+    ':' +
+    print2Digit(date.getUTCMinutes()) +
+    ':' +
+    print2Digit(date.getUTCSeconds());
   };
 
   getCertificateName = (subjectName) => {
@@ -425,10 +425,10 @@ function CertificateParser() {
 
   getCertificateInfoString = (subjectName, fromDate, issuedBy) => {
     returnextract(subjectName, 'CN=') +
-      '; Выдан: ' +
-      getCertificateDate(fromDate) +
-      ' ' +
-      issuedBy;
+    '; Выдан: ' +
+    getCertificateDate(fromDate) +
+    ' ' +
+    issuedBy;
   };
 }
 
@@ -503,8 +503,9 @@ function GetCertificate(subjectName) {
 function GetCertificates() {
   return new Promise((resolve, reject) => {
     cadesplugin.async_spawn(function*(args) {
-      try {
-        var certificateStore = yield cadesplugin.CreateObjectAsync("CAPICOM.Store");
+      if (resolve) {
+        console.log('cadesplugin', cadesplugin);
+        var certificateStore = yield cadesplugin.CreateObjectAsync('CAPICOM.Store');
 
         yield certificateStore.Open(
           cadesplugin.CAPICOM_CURRENT_USER_STORE,
@@ -562,14 +563,12 @@ function GetCertificates() {
         yield certificateStore.Close();
         certList.globalCountCertificate = count;
         resolve(certList.globalOptionList, certList);
-      } catch (err) {
-        reject(err);
-      }
+      } else reject('Ошибка с сертификатами');
     });
   });
 }
 
-var AsyncCrypro = {
+module.exports = {
   PluginInstaled: PluginInstaled,
   GetErrorMessage: GetErrorMessage,
   Verify: Verify,
@@ -580,6 +579,4 @@ var AsyncCrypro = {
   CertificateParser: CertificateParser,
   GetCertificate: GetCertificate,
   GetCertificates: GetCertificates
-};
-
-module.exports = AsyncCrypro;
+}

@@ -1,8 +1,8 @@
 require('./cadesplugin-api');
 var _ = require('underscore'),
-  AsyncCrypto = require('./async-crypto'),
   cspAPI,
   isChromium,
+  async = require('./async-crypto'),
   pathToFileAPI = 'cadesplugin-api.js',
   pathToChromiumAPI = 'async-crypto.js',
   pathToFileAPIie = 'sync-crypto.js',
@@ -15,14 +15,14 @@ function ScriptLoader(url) {
     var self = this;
     var prom = [];
 
-    _.each(url, function(item) {
+    _.each(url, (item) => {
       prom.push(self.ScriptLoader(item));
     });
 
     return Promise.all(prom);
   }
 
-  return new Promise(function(resolve, reject) {
+  return new Promise((resolve, reject) => {
     var r = false;
     var scripts = document.getElementsByTagName('script');
     var t = scripts[scripts.length - 1];
@@ -32,7 +32,7 @@ function ScriptLoader(url) {
     s.type = 'text/javascript';
     s.src = url;
     s.defer = true;
-    s['onload'] = s['onreadystatechange'] = function() {
+    s['onload'] = s['onreadystatechange'] = () => {
       if (!r && (!readyState || readyState === 'complete')) {
         r = true;
         resolve(this);
@@ -71,29 +71,29 @@ cspAPI = ScriptLoader(url + '/' + pathToFileAPI, url + '/' + pathToFileLib);
  * Инициализация КриптоПро
  */
 function Then(resolve, reject) {
-  cspAPI.then(function() {});
+  cspAPI.then(() => {});
 
-  cspAPI.then(function() {
+  cspAPI.then(() => {
     if (isChromium) {
       cadesplugin.then(
-        function() {
+        () => {
           IsPluginEnable().then(
-            function() {
+            () => {
               resolve(cadesplugin);
             },
-            function() {
+            () => {
               reject('Не установлен Крипто-про CSP');
             }
           );
         },
-        function(error) {
+        (error) => {
           reject(error);
         }
       );
     } else {
       window.addEventListener(
         'message',
-        function(event) {
+        (event) => {
           if (event.data === 'cadesplugin_loaded') {
             resolve(cadesplugin);
           } else if (event.data === 'cadesplugin_load_error') {
@@ -114,14 +114,14 @@ function Then(resolve, reject) {
  */
 function SignMessage(certSubjectName, base64EncodedString) {
   return {
-    then: function(resolve, reject) {
+    then: (resolve, reject) => {
       if (isChromium) {
         var thenable = Sign(certSubjectName, base64EncodedString);
         thenable
-          .then(function(result) {
+          .then((result) => {
             return resolve(result);
           })
-          .catch(function(error) {
+          .catch((error) => {
             return reject(error);
           });
       } else {
@@ -142,14 +142,14 @@ function SignMessage(certSubjectName, base64EncodedString) {
 
 function SignXmlCert(certSubjectName, xml) {
   return {
-    then: function(resolve, reject) {
+    then: (resolve, reject) => {
       if (isChromium) {
         var thenable = SignXml(certSubjectName, xml);
         thenable
-          .then(function(result) {
+          .then((result) => {
             return resolve(result);
           })
-          .catch(function(error) {
+          .catch((error) => {
             return reject(error);
           });
       } else {
@@ -170,14 +170,14 @@ function SignXmlCert(certSubjectName, xml) {
 
 function Dec(certificateName, decodeString) {
   return {
-    then: function(resolve, reject) {
+    then: (resolve, reject) => {
       if (isChromium) {
         var thenable = Decrypt(certificateName, decodeString);
         thenable
-          .then(function(result) {
+          .then((result) => {
             return resolve(result);
           })
-          .catch(function(error) {
+          .catch((error) => {
             return reject(error);
           });
       } else {
@@ -198,14 +198,14 @@ function Dec(certificateName, decodeString) {
 
 function GetCertificateName(subjectName) {
   return {
-    then: function(resolve, reject) {
+    then: (resolve, reject) => {
       if (isChromium) {
         var thenable = GetCertificate(subjectName);
         thenable
-          .then(function(result) {
+          .then((result) => {
             return resolve(result);
           })
-          .catch(function(error) {
+          .catch((error) => {
             return reject(error);
           });
       } else {
@@ -229,28 +229,26 @@ function GetCertificateName(subjectName) {
  */
 function GetCertificate(data) {
   if (IsChromiumBased()) {
-    return new Promise(function(resolve, reject) {
-      return AsyncCrypto.GetCertificates()
-        .then(function(certList) {
+    return new Promise((resolve, reject) => {
+      return async.GetCertificates()
+        .then((certList) => {
           return resolve(certList);
         })
-        .catch(function(error) {
+        .catch((error) => {
           return reject(error);
         });
     });
   } else {
-    return new Promise(function(resolve, reject) {
-      setTimeout(function() {
-        var certList = AsyncCrypto.GetCertificates();
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        var certList = async.GetCertificates();
         if (typeof certList === 'string') {
           return reject(certList);
         } else {
           return resolve(certList);
         }
       }, 0);
-    }).catch(function(e) {
-      console.log(e);
-    });
+    }).catch((e) => console.log(e));
   }
 }
 
@@ -258,17 +256,17 @@ function IsPluginEnable() {
   if (IsChromiumBased()) {
     return new Promise(function(resolve, reject) {
       return AsyncCrypro.PluginInstaled()
-        .then(function(value) {
+        .then((value) => {
           return resolve(value);
         })
-        .catch(function(error) {
+        .catch((error) => {
           return reject(error);
         });
     });
   } else {
     return new Promise(
       function(resolve, reject) {
-        setTimeout(function() {
+        setTimeout(() => {
           if (_.isUndefined(AsyncCrypro.PluginInstaled())) {
             reject('Плагин не установлен');
           }
@@ -295,7 +293,7 @@ var cryptoProPlugin = {
   SignXmlCert: SignXmlCert,
   Dec: Dec,
   GetCertificate: GetCertificate,
-  AsyncCrypto: AsyncCrypto
+  async: async
 };
 
 module.exports = cryptoProPlugin;
