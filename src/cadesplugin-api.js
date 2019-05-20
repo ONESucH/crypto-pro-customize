@@ -20,6 +20,14 @@
       return cadesplugin;
     } else cadesplugin = {};
   }
+  
+  function asyncConstructor(func) {
+    return new Promise((res, rej) => {
+      setTimeout(() => {
+        res ? res(func) : rej('asyncConstructor is not found');
+      }, 2000);
+    })
+  }
 
   function cpcsp_console_log(level, msg) {
     //IE9 не может писать в консоль если не открыта вкладка developer tools
@@ -252,7 +260,7 @@
       if (name.match(/X509Enrollment/i)) {
         try {
           // Объекты CertEnroll создаются через CX509EnrollmentWebClassFactory
-          var objCertEnrollClassFactory = document.getElementById(
+          var funcCertEnrollClassFactory = document.getElementById(
             'certEnrollClassFactory'
           );
           return objCertEnrollClassFactory.CreateObject(name);
@@ -305,13 +313,7 @@
 
   // Функция активации асинхронных объектов КриптоПро ЭЦП Browser plug-in
   function CreateObjectAsync(name) {
-    //return pluginObject.CreateObjectAsync(name);
-    setInterval(function() {
-      if (pluginObject.CreateObjectAsync) {
-        console.log('pluginObject.CreateObjectAsync', pluginObject.CreateObjectAsync);
-        return pluginObject.CreateObjectAsync(name);
-      }
-    }, 500);
+    return pluginObject.CreateObjectAsync(name);
   }
 
   //Функции для IOS
@@ -632,7 +634,7 @@
   }
 
   function set_pluginObject(obj) {
-    return pluginObject = obj;
+    pluginObject = obj;
   }
 
   //Export
@@ -643,11 +645,13 @@
   cadesplugin.getLastError = getLastError;
 
   if (isNativeMessageSupported()) {
-    cadesplugin.CreateObjectAsync = CreateObjectAsync;
+    asyncConstructor(CreateObjectAsync).then(res => {
+      cadesplugin.CreateObjectAsync = res;
+    });
   }
 
   if (!isNativeMessageSupported()) {
-    cadesplugin.CreateObject = CreateObject;
+    asyncConstructor(CreateObject).then(res => cadesplugin.CreateObject = res);
   }
 
   if (window.cadesplugin_load_timeout) {

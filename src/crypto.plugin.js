@@ -1,12 +1,7 @@
 require('./cadesplugin-api');
-var _ = require('underscore');
-console.log('window', window);
-console.log('underscore ', _);
-
-var AsyncCrypto = require('./async-crypto');
-console.log('AsyncCrypto', AsyncCrypto);
-
-var cspAPI,
+var _ = require('underscore'),
+  AsyncCrypto = require('./async-crypto'),
+  cspAPI,
   isChromium,
   pathToFileAPI = 'cadesplugin-api.js',
   pathToChromiumAPI = 'async-crypto.js',
