@@ -1,3 +1,10 @@
+function asyncModel(fync) {
+  return new Promise((resolve, reject) => {
+    resolve(fync);
+    reject('Добавьте функцию в "asyncModel"');
+  });
+}
+
 function PluginInstaled() {
   return new Promise((resolve, reject) => {
     cadesplugin.async_spawn(function*(args) {
@@ -5,7 +12,7 @@ function PluginInstaled() {
         var cadesabout = yield cadesplugin.CreateObjectAsync('CAdESCOM.About');
         resolve(true);
       } catch (err) {
-        const mimetype = navigator.mimeTypes['application/x-cades'];
+        var mimetype = navigator.mimeTypes['application/x-cades'];
         if (mimetype) {
           var plugin = mimetype.enabledPlugin;
           if (plugin) {
@@ -165,7 +172,7 @@ function Sign(subjectName, data) {
 
           yield certificateStore.Close();
 
-          const errorMessage = 'Не найден подходящий сертификат';
+          var errorMessage = 'Не найден подходящий сертификат';
 
           console.log(errorMessage, {
             subjectName: subjectName
@@ -277,7 +284,7 @@ function SignXml(subjectName, xml) {
 
           yield certificateStore.Close();
 
-          const errorMessage = 'Не найден подходящий сертификат';
+          var errorMessage = 'Не найден подходящий сертификат';
 
           console.log(errorMessage, {
             subjectName: subjectName
@@ -361,7 +368,7 @@ function Decrypt(subjectName, data) {
             }
           }
 
-          const errorMessage = 'Не найден подходящий сертификат';
+          var errorMessage = 'Не найден подходящий сертификат';
 
           console.log(errorMessage, {
             subjectName: subjectName
@@ -400,7 +407,7 @@ function CertificateParser() {
   };
 
   getCertificateDate = (paramDate) => {
-    const date = new Date(paramDate);
+    var date = new Date(paramDate);
 
     returnprint2Digit(date.getUTCDate()) +
     '.' +
@@ -436,9 +443,7 @@ function GetCertificate(subjectName) {
   return new Promise((resolve, reject) => {
     cadesplugin.async_spawn(function*(args) {
       try {
-        var certificateStore = yield cadesplugin.CreateObjectAsync(
-          'CAPICOM.Store'
-        );
+        var certificateStore = yield cadesplugin.CreateObjectAsync('CAPICOM.Store');
 
         yield certificateStore.Open(
           cadesplugin.CAPICOM_CURRENT_USER_STORE,
@@ -485,7 +490,7 @@ function GetCertificate(subjectName) {
 
         yield certificateStore.Close();
 
-        const errorMessage = 'Не найден подходящий сертификат';
+        var errorMessage = 'Не найден подходящий сертификат';
 
         console.log(errorMessage, {
           subjectName: certSubjectName
@@ -503,67 +508,68 @@ function GetCertificate(subjectName) {
 function GetCertificates() {
   return new Promise((resolve, reject) => {
     cadesplugin.async_spawn(function*(args) {
-      if (resolve) {
-        console.log('cadesplugin', cadesplugin);
-        var certificateStore = yield cadesplugin.CreateObjectAsync('CAPICOM.Store');
+      var certificateStore = yield cadesplugin.CreateObjectAsync(
+        'CAPICOM.Store'
+      );
 
-        yield certificateStore.Open(
-          cadesplugin.CAPICOM_CURRENT_USER_STORE,
-          cadesplugin.CAPICOM_MY_STORE,
-          cadesplugin.CAPICOM_STORE_OPEN_MAXIMUM_ALLOWED
-        );
+      console.log('certificateStore', certificateStore);
 
-        var certificatesObj = yield certificateStore.Certificates;
-        var certificateCount = yield certificatesObj.Count;
-        var certList = {};
+      yield certificateStore.Open(
+        cadesplugin.CAPICOM_CURRENT_USER_STORE,
+        cadesplugin.CAPICOM_MY_STORE,
+        cadesplugin.CAPICOM_STORE_OPEN_MAXIMUM_ALLOWED
+      );
 
-        if (certificateCount === 0) {
-          certList.globalCountCertificate = 0;
-          reject({ certListNotFound: true });
-          return;
+      var certificatesObj = yield certificateStore.Certificates,
+        certificateCount = yield certificatesObj.Count,
+        certList = {};
+
+      if (certificateCount === 0) {
+        certList.globalCountCertificate = 0;
+        reject({ certListNotFound: true });
+        return;
+      }
+
+      if (!Array.isArray(certList.globalOptionList)) {
+        certList.globalOptionList = [];
+      }
+
+      var dateObj = new Date(),
+        count = 0;
+
+      for (var i = 1; i <= certificateCount; i++) {
+        var cert = certificatesObj.Item(i),
+          validToDate = new Date(cert.ValidToDate),
+          validFromDate = new Date(cert.ValidFromDate),
+          hasPrivateKey = cert.HasPrivateKey(),
+          validator = yield cert.IsValid(),
+          isValid = yield validator.Result;
+
+        if (dateObj < new Date(validToDate) && isValid && hasPrivateKey) {
+          var issuedBy = cert.GetInfo(1);
+          issuedBy = issuedBy || '';
+
+          var parser = yield new CertificateParser();
+          var text = yield parser.getCertificateInfoString(
+            cert.SubjectName,
+            validFromDate,
+            issuedBy
+          );
+
+          yield certList.globalOptionList.push({
+            value: text.replace(/^cn=([^;]+);.+/i, '$1'),
+            text: text.replace('CN=', '')
+          });
+
+          count++;
         }
+      }
 
-        if (!Array.isArray(certList.globalOptionList)) {
-          certList.globalOptionList = [];
-        }
+      console.log('certificateStore', certificateStore);
 
-        var dateObj = new Date();
-        var count = 0;
-
-        for (var i = 1; i <= certificateCount; i++) {
-          var cert = yield certificatesObj.Item(i);
-
-          var validToDate = new Date(yield cert.ValidToDate);
-          var validFromDate = new Date(yield cert.ValidFromDate);
-
-          var hasPrivateKey = yield cert.HasPrivateKey();
-          var validator = yield cert.IsValid();
-          var isValid = yield validator.Result;
-
-          if (dateObj < new Date(validToDate) && isValid && hasPrivateKey) {
-            var issuedBy = yield cert.GetInfo(1);
-            issuedBy = issuedBy || '';
-
-            var parser = new CertificateParser();
-            const text = parser.getCertificateInfoString(
-              yield cert.SubjectName,
-              validFromDate,
-              issuedBy
-            );
-
-            certList.globalOptionList.push({
-              value: text.replace(/^cn=([^;]+);.+/i, '$1'),
-              text: text.replace('CN=', '')
-            });
-
-            count++;
-          }
-        }
-
-        yield certificateStore.Close();
-        certList.globalCountCertificate = count;
-        resolve(certList.globalOptionList, certList);
-      } else reject('Ошибка с сертификатами');
+      yield certificateStore.Close();
+      certList.globalCountCertificate = count;
+      resolve(certList.globalOptionList, certList);
     });
   });
 }

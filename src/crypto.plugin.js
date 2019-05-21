@@ -48,12 +48,12 @@ function IsChromiumBased() {
   var isChrome = navigator.userAgent.match(/chrome/i);
   var isOpera = navigator.userAgent.match(/opr/i);
 
-  if (isChrome == null) {
+  if (!isChrome) {
     // В Firefox и IE работаем через NPAPI
     return false;
   } else {
     // В Chrome и Opera работаем через асинхронную версию
-    if (isChrome.length > 0 || isOpera != null) {
+    if (isChrome.length > 0 || isOpera) {
       return true;
     }
   }
@@ -78,17 +78,11 @@ function Then(resolve, reject) {
       cadesplugin.then(
         () => {
           IsPluginEnable().then(
-            () => {
-              resolve(cadesplugin);
-            },
-            () => {
-              reject('Не установлен Крипто-про CSP');
-            }
+            () => resolve(cadesplugin),
+            () => reject('Не установлен Крипто-про CSP')
           );
         },
-        (error) => {
-          reject(error);
-        }
+        (error) => reject(error)
       );
     } else {
       window.addEventListener(
@@ -116,25 +110,19 @@ function SignMessage(certSubjectName, base64EncodedString) {
   return {
     then: (resolve, reject) => {
       if (isChromium) {
-        var thenable = Sign(certSubjectName, base64EncodedString);
+        var thenable = async.Sign(certSubjectName, base64EncodedString);
         thenable
-          .then((result) => {
-            return resolve(result);
-          })
-          .catch((error) => {
-            return reject(error);
-          });
+          .then((result) => resolve(result))
+          .catch((error) => reject(error))
       } else {
         try {
-          var result = Sign(certSubjectName, base64EncodedString);
-          if (result === null) {
+          var result = async.Sign(certSubjectName, base64EncodedString);
+          if (!result) {
             reject(result);
           } else {
             resolve(result);
           }
-        } catch (error) {
-          reject(error);
-        }
+        } catch (error) { reject(error) }
       }
     }
   };
@@ -146,23 +134,15 @@ function SignXmlCert(certSubjectName, xml) {
       if (isChromium) {
         var thenable = SignXml(certSubjectName, xml);
         thenable
-          .then((result) => {
-            return resolve(result);
-          })
-          .catch((error) => {
-            return reject(error);
-          });
+          .then((result) => resolve(result))
+          .catch((error) => reject(error))
       } else {
         try {
           var result = SignXml(certSubjectName, xml);
-          if (result === null) {
+          if (!result) {
             reject(result);
-          } else {
-            resolve(result);
-          }
-        } catch (error) {
-          reject(error);
-        }
+          } else resolve(result);
+        } catch (error) { reject(error) }
       }
     }
   };
@@ -174,23 +154,17 @@ function Dec(certificateName, decodeString) {
       if (isChromium) {
         var thenable = Decrypt(certificateName, decodeString);
         thenable
-          .then((result) => {
-            return resolve(result);
-          })
-          .catch((error) => {
-            return reject(error);
-          });
+          .then((result) => resolve(result))
+          .catch((error) => reject(error))
       } else {
         try {
           var result = Decrypt(certificateName, decodeString);
-          if (result === null) {
+          if (!result) {
             reject(result);
           } else {
             resolve(result);
           }
-        } catch (error) {
-          reject(error);
-        }
+        } catch (error) { reject(error) }
       }
     }
   };
@@ -202,12 +176,8 @@ function GetCertificateName(subjectName) {
       if (isChromium) {
         var thenable = GetCertificate(subjectName);
         thenable
-          .then((result) => {
-            return resolve(result);
-          })
-          .catch((error) => {
-            return reject(error);
-          });
+          .then((result) => resolve(result))
+          .catch((error) => reject(error))
       } else {
         try {
           var result = GetCertificate(subjectName);
@@ -216,9 +186,7 @@ function GetCertificateName(subjectName) {
           } else {
             resolve(result);
           }
-        } catch (error) {
-          reject(error);
-        }
+        } catch (error) { reject(error) };
       }
     }
   };
@@ -229,57 +197,46 @@ function GetCertificateName(subjectName) {
  */
 function GetCertificate(data) {
   if (IsChromiumBased()) {
-    return new Promise((resolve, reject) => {
-      return async.GetCertificates()
-        .then((certList) => {
-          return resolve(certList);
-        })
-        .catch((error) => {
-          return reject(error);
-        });
-    });
+    return new Promise((resolve, reject) => 
+      async.GetCertificates(cadesplugin)
+        .then((certList) => resolve(certList))
+        .catch((error) => reject(error))
+    );
   } else {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        var certList = async.GetCertificates();
+    return new Promise((resolve, reject) => setTimeout(() => {
+        var certList = async.GetCertificates(cadesplugin);
         if (typeof certList === 'string') {
-          return reject(certList);
+          reject(certList);
         } else {
-          return resolve(certList);
+          resolve(certList);
         }
-      }, 0);
-    }).catch((e) => console.log(e));
+      }, 0))
+    .catch((e) => console.log(e));
   }
 }
 
 function IsPluginEnable() {
   if (IsChromiumBased()) {
-    return new Promise(function(resolve, reject) {
-      return AsyncCrypro.PluginInstaled()
-        .then((value) => {
-          return resolve(value);
-        })
-        .catch((error) => {
-          return reject(error);
-        });
-    });
+    return new Promise((resolve, reject) => 
+       async.PluginInstaled()
+        .then((value) => resolve(value))
+        .catch((error) => reject(error))
+    );
   } else {
     return new Promise(
       function(resolve, reject) {
         setTimeout(() => {
-          if (_.isUndefined(AsyncCrypro.PluginInstaled())) {
+          if (_.isUndefined(async.PluginInstaled())) {
             reject('Плагин не установлен');
           }
-          var value = AsyncCrypro.PluginInstaled();
+          var value = async.PluginInstaled();
           if (typeof value === 'boolean') {
             reject(value);
           } else {
             resolve(value);
           }
-        }, 0);
-      }.catch(function(e) {
-        console.log(e);
-      })
+        }, 0)}
+        .catch((e) => console.log(e))
     );
   }
 }
