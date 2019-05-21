@@ -107,118 +107,112 @@ function Then(resolve, reject) {
  * (имя можно получить из списка полученного с помощью getCertList)
  */
 function SignMessage(certSubjectName, base64EncodedString) {
-  return {
-    then: (resolve, reject) => {
-      if (isChromium) {
-        var thenable = async.Sign(certSubjectName, base64EncodedString);
-        thenable
-          .then((result) => resolve(result))
-          .catch((error) => reject(error))
-      } else {
-        try {
-          var result = async.Sign(certSubjectName, base64EncodedString);
-          if (!result) {
-            reject(result);
-          } else {
-            resolve(result);
-          }
-        } catch (error) { reject(error) }
+  return new Promise((resolve, reject) => {
+    if (isChromium) {
+      var thenable = async.Sign(certSubjectName, base64EncodedString);
+      thenable
+        .then((result) => resolve(result))
+        .catch((error) => reject(error));
+    } else {
+      try {
+        var result = async.Sign(certSubjectName, base64EncodedString);
+        if (!result) {
+          reject(result);
+        } else resolve(result);
+      } catch (error) {
+        reject(error);
       }
     }
-  };
+  });
 }
 
 function SignXmlCert(certSubjectName, xml) {
-  return {
-    then: (resolve, reject) => {
-      if (isChromium) {
-        var thenable = SignXml(certSubjectName, xml);
-        thenable
-          .then((result) => resolve(result))
-          .catch((error) => reject(error))
-      } else {
-        try {
-          var result = SignXml(certSubjectName, xml);
-          if (!result) {
-            reject(result);
-          } else resolve(result);
-        } catch (error) { reject(error) }
+  return new Promose((resolve, reject) => {
+    if (isChromium) {
+      var thenable = SignXml(certSubjectName, xml);
+      thenable
+        .then((result) => resolve(result))
+        .catch((error) => reject(error));
+    } else {
+      try {
+        var result = SignXml(certSubjectName, xml);
+        if (!result) {
+          reject(result);
+        } else resolve(result);
+      } catch (error) {
+        reject(error);
       }
     }
-  };
+  });
 }
 
 function Dec(certificateName, decodeString) {
-  return {
-    then: (resolve, reject) => {
-      if (isChromium) {
-        var thenable = Decrypt(certificateName, decodeString);
-        thenable
-          .then((result) => resolve(result))
-          .catch((error) => reject(error))
-      } else {
-        try {
-          var result = Decrypt(certificateName, decodeString);
-          if (!result) {
-            reject(result);
-          } else {
-            resolve(result);
-          }
-        } catch (error) { reject(error) }
+  return new Promose((resolve, reject) => {
+    if (isChromium) {
+      var thenable = Decrypt(certificateName, decodeString);
+      thenable
+        .then((result) => resolve(result))
+        .catch((error) => reject(error));
+    } else {
+      try {
+        var result = Decrypt(certificateName, decodeString);
+        if (!result) {
+          reject(result);
+        } else {
+          resolve(result);
+        }
+      } catch (error) {
+        reject(error);
       }
     }
-  };
+  });
 }
 
 function GetCertificateName(subjectName) {
-  return {
-    then: (resolve, reject) => {
-      if (isChromium) {
-        var thenable = GetCertificate(subjectName);
-        thenable
-          .then((result) => resolve(result))
-          .catch((error) => reject(error))
-      } else {
-        try {
-          var result = GetCertificate(subjectName);
-          if (result === null) {
-            reject(result);
-          } else {
-            resolve(result);
-          }
-        } catch (error) { reject(error) };
+  return new Promose((resolve, reject) => {
+    if (isChromium) {
+      var thenable = GetCertificate(subjectName);
+      thenable
+        .then((result) => resolve(result))
+        .catch((error) => reject(error));
+    } else {
+      try {
+        var result = GetCertificate(subjectName);
+        if (result === null) {
+          reject(result);
+        } else resolve(result);
+      } catch (error) {
+        reject(error);
       }
     }
-  };
+  });
 }
 
 /**
  * Получение списка сертифкатов
  */
-function GetCertificate(data) {
+function GetCertificate() {
   if (IsChromiumBased()) {
-    return new Promise((resolve, reject) => 
-      async.GetCertificates(cadesplugin)
+    return new Promise((resolve, reject) =>
+      async
+        .GetCertificates()
         .then((certList) => resolve(certList))
         .catch((error) => reject(error))
     );
-  } else {
-    return new Promise((resolve, reject) => setTimeout(() => {
-        var certList = async.GetCertificates(cadesplugin);
-        if (typeof certList === 'string') {
-          reject(certList);
-        } else {
-          resolve(certList);
-        }
-      }, 0))
-    .catch((e) => console.log(e));
-  }
+  } else
+    new Promise((resolve, reject) => {
+      var certList = async.GetCertificates();
+      if (typeof certList === 'string') {
+        reject(certList);
+      } else resolve(certList);
+    }).catch((e) => console.log(e));
 }
 
 function IsPluginEnable() {
   if (IsChromiumBased()) {
-    return new Promise((resolve, reject) => 
-       async.PluginInstaled()
+    return new Promise((resolve, reject) =>
+      async
+        .PluginInstaled()
         .then((value) => resolve(value))
         .catch((error) => reject(error))
     );
@@ -235,8 +229,8 @@ function IsPluginEnable() {
           } else {
             resolve(value);
           }
-        }, 0)}
-        .catch((e) => console.log(e))
+        }, 0);
+      }.catch((e) => console.log(e))
     );
   }
 }

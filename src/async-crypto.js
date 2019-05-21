@@ -410,16 +410,16 @@ function CertificateParser() {
     var date = new Date(paramDate);
 
     returnprint2Digit(date.getUTCDate()) +
-    '.' +
-    print2Digit(date.getMonth() + 1) +
-    '.' +
-    date.getFullYear() +
-    ' ' +
-    print2Digit(date.getUTCHours()) +
-    ':' +
-    print2Digit(date.getUTCMinutes()) +
-    ':' +
-    print2Digit(date.getUTCSeconds());
+      '.' +
+      print2Digit(date.getMonth() + 1) +
+      '.' +
+      date.getFullYear() +
+      ' ' +
+      print2Digit(date.getUTCHours()) +
+      ':' +
+      print2Digit(date.getUTCMinutes()) +
+      ':' +
+      print2Digit(date.getUTCSeconds());
   };
 
   getCertificateName = (subjectName) => {
@@ -432,10 +432,10 @@ function CertificateParser() {
 
   getCertificateInfoString = (subjectName, fromDate, issuedBy) => {
     returnextract(subjectName, 'CN=') +
-    '; Выдан: ' +
-    getCertificateDate(fromDate) +
-    ' ' +
-    issuedBy;
+      '; Выдан: ' +
+      getCertificateDate(fromDate) +
+      ' ' +
+      issuedBy;
   };
 }
 
@@ -443,7 +443,9 @@ function GetCertificate(subjectName) {
   return new Promise((resolve, reject) => {
     cadesplugin.async_spawn(function*(args) {
       try {
-        var certificateStore = yield cadesplugin.CreateObjectAsync('CAPICOM.Store');
+        var certificateStore = yield cadesplugin.CreateObjectAsync(
+          'CAPICOM.Store'
+        );
 
         yield certificateStore.Open(
           cadesplugin.CAPICOM_CURRENT_USER_STORE,
@@ -512,8 +514,6 @@ function GetCertificates() {
         'CAPICOM.Store'
       );
 
-      console.log('certificateStore', certificateStore);
-
       yield certificateStore.Open(
         cadesplugin.CAPICOM_CURRENT_USER_STORE,
         cadesplugin.CAPICOM_MY_STORE,
@@ -541,7 +541,7 @@ function GetCertificates() {
         var cert = certificatesObj.Item(i),
           validToDate = new Date(cert.ValidToDate),
           validFromDate = new Date(cert.ValidFromDate),
-          hasPrivateKey = cert.HasPrivateKey(),
+          hasPrivateKey = yield cert.HasPrivateKey(),
           validator = yield cert.IsValid(),
           isValid = yield validator.Result;
 
@@ -565,11 +565,9 @@ function GetCertificates() {
         }
       }
 
-      console.log('certificateStore', certificateStore);
-
       yield certificateStore.Close();
-      certList.globalCountCertificate = count;
-      resolve(certList.globalOptionList, certList);
+      yield certList.globalCountCertificate = count;
+      yield resolve(certList.globalOptionList, certList); 
     });
   });
 }
@@ -585,4 +583,4 @@ module.exports = {
   CertificateParser: CertificateParser,
   GetCertificate: GetCertificate,
   GetCertificates: GetCertificates
-}
+};
